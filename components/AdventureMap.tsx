@@ -31,7 +31,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
       <div style={{
         position: 'relative',
         width: '100%',
-        paddingBottom: '75%', // 4:3 aspect ratio (800:600)
+        paddingBottom: '130%', // 3:4-ish aspect ratio 
         borderRadius: '10px',
         border: '3px solid #8B4513',
         boxShadow: 'inset 0 0 50px rgba(0, 0, 0, 0.3)',
@@ -45,7 +45,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/map-background.svg)',
+          backgroundImage: 'url(/floor-plan.jpeg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

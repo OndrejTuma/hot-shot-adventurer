@@ -51,17 +51,17 @@ export const ROUTES: RouteConfig[] = [
   },
   {
     routeId: 'desert-oasis-secret',
-    name: 'Desert Oasis Secret',
-    description: 'The desert oasis secret is revealed! A hidden spring flows with crystal-clear water.',
-    points: 550,
-    position: { x: 80, y: 70 },
+    name: 'Posvátné vodopády',
+    description: 'Posvátné vodní zdroje jsou zde! Skryté prameny tečou s krystalově čistou vodou.',
+    points: 1200,
+    position: { x: 62.5, y: 9 },
   },
   {
     routeId: 'underwater-archaeological-site',
-    name: 'Underwater Archaeological Site',
+    name: 'Arktické pláně',
     description: 'You\'ve discovered the underwater archaeological site! Sunken treasures await discovery.',
     points: 450,
-    position: { x: 45, y: 80 },
+    position: { x: 96, y: 21 },
   },
 ];
 
