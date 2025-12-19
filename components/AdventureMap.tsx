@@ -5,9 +5,10 @@ import { getRouteById } from '@/lib/routes';
 
 interface AdventureMapProps {
   routes: Route[];
+  onRouteClick?: (routeId: string) => void;
 }
 
-export default function AdventureMap({ routes }: AdventureMapProps) {
+export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps) {
 
   return (
     <div style={{
@@ -70,12 +71,13 @@ export default function AdventureMap({ routes }: AdventureMapProps) {
           return (
             <div
               key={route.routeId}
+              onClick={() => onRouteClick && onRouteClick(route.routeId)}
               style={{
                 position: 'absolute',
                 left: `${position.x}%`,
                 top: `${position.y}%`,
                 transform: 'translate(-50%, -50%)',
-                cursor: 'default',
+                cursor: isVisited && onRouteClick ? 'pointer' : 'default',
                 zIndex: 10,
               }}
             >

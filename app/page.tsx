@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Confetti from 'react-confetti'
 import AdventureMap from '@/components/AdventureMap'
 import ProgressTracker from '@/components/ProgressTracker'
@@ -12,6 +13,7 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [loading, setLoading] = useState(true)
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
+  const router = useRouter()
 
   useEffect(() => {
     fetchGameState()
@@ -105,7 +107,10 @@ export default function Home() {
           totalRoutes={gameState.totalRoutes}
         />
 
-        <AdventureMap routes={gameState.routes} />
+        <AdventureMap 
+          routes={gameState.routes}
+          onRouteClick={(routeId) => router.push(`/route/${routeId}`)}
+        />
       </div>
     </div>
   )
