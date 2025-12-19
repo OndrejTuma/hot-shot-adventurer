@@ -1,20 +1,13 @@
 'use client';
 
 import { Route } from '@/lib/game';
+import { getRouteById } from '@/lib/routes';
 
 interface AdventureMapProps {
   routes: Route[];
-  onRouteClick: (routeId: string) => void;
 }
 
-export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps) {
-  // Generate stable random positions for the 8 points
-  const getPosition = (index: number) => {
-    const seed = index * 1234; // Stable seed based on index
-    const x = 20 + ((seed * 17) % 60); // 20-80% of width
-    const y = 15 + ((seed * 23) % 70); // 15-85% of height
-    return { x, y };
-  };
+export default function AdventureMap({ routes }: AdventureMapProps) {
 
   return (
     <div style={{
@@ -37,51 +30,52 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
       <div style={{
         position: 'relative',
         width: '100%',
-        height: '500px',
-        background: 'linear-gradient(135deg, #2c5530 0%, #3d6b42 50%, #4a7c4f 100%)',
+        paddingBottom: '75%', // 4:3 aspect ratio (800:600)
         borderRadius: '10px',
         border: '3px solid #8B4513',
         boxShadow: 'inset 0 0 50px rgba(0, 0, 0, 0.3)',
         overflow: 'hidden',
+        background: '#F5E6D3',
       }}>
-        {/* Decorative elements */}
+        {/* Map background image */}
         <div style={{
           position: 'absolute',
-          top: '10%',
-          left: '10%',
-          width: '80px',
-          height: '80px',
-          background: 'rgba(139, 69, 19, 0.3)',
-          borderRadius: '50%',
-          border: '2px dashed #8B4513',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'url(/map-background.svg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }} />
         
+        {/* Container for route points - ensures proper positioning */}
         <div style={{
           position: 'absolute',
-          bottom: '15%',
-          right: '15%',
-          width: '60px',
-          height: '60px',
-          background: 'rgba(139, 69, 19, 0.3)',
-          borderRadius: '50%',
-          border: '2px dashed #8B4513',
-        }} />
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+        }}>
 
         {/* Route points */}
-        {routes.map((route, index) => {
-          const position = getPosition(index);
+        {routes.map((route) => {
+          const routeConfig = getRouteById(route.routeId);
+          if (!routeConfig) return null;
+          
+          const position = routeConfig.position;
           const isVisited = route.visited;
           
           return (
             <div
               key={route.routeId}
-              onClick={() => !isVisited && onRouteClick(route.routeId)}
               style={{
                 position: 'absolute',
                 left: `${position.x}%`,
                 top: `${position.y}%`,
                 transform: 'translate(-50%, -50%)',
-                cursor: isVisited ? 'default' : 'pointer',
+                cursor: 'default',
                 zIndex: 10,
               }}
             >
@@ -105,21 +99,22 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
               <div
                 style={{
                   position: 'relative',
-                  width: isVisited ? '30px' : '35px',
-                  height: isVisited ? '30px' : '35px',
+                  width: '35px',
+                  height: '35px',
                   borderRadius: '50%',
                   background: isVisited 
-                    ? 'rgba(100, 100, 100, 0.7)' 
+                    ? 'radial-gradient(circle, #4CAF50 0%, #2E7D32 100%)' 
                     : 'radial-gradient(circle, #FFD700 0%, #FFA500 100%)',
-                  border: `3px solid ${isVisited ? '#666' : '#FFD700'}`,
+                  border: `3px solid ${isVisited ? '#2E7D32' : '#FFD700'}`,
                   boxShadow: isVisited 
-                    ? '0 0 10px rgba(100, 100, 100, 0.5)'
+                    ? '0 0 15px rgba(76, 175, 80, 0.6)'
                     : '0 0 20px rgba(255, 215, 0, 0.8)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '20px',
                   transition: 'all 0.3s ease',
+                  animation: isVisited ? 'celebrate 0.6s ease' : 'none',
                 }}
               >
                 {isVisited ? '✓' : '📍'}
@@ -140,12 +135,13 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
                     fontWeight: 'bold',
                   }}
                 >
-                  {route.points} pts
+                  {routeConfig.points} pts
                 </div>
               )}
             </div>
           );
         })}
+        </div>
       </div>
       
       <style jsx>{`
@@ -161,6 +157,23 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
           100% {
             transform: translate(-50%, -50%) scale(1);
             opacity: 0.7;
+          }
+        }
+        @keyframes celebrate {
+          0% {
+            transform: scale(1);
+          }
+          25% {
+            transform: scale(1.3) rotate(5deg);
+          }
+          50% {
+            transform: scale(1.2) rotate(-5deg);
+          }
+          75% {
+            transform: scale(1.3) rotate(5deg);
+          }
+          100% {
+            transform: scale(1);
           }
         }
       `}</style>

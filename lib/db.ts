@@ -33,28 +33,17 @@ db.exec(`
 // Initialize routes if they don't exist
 const routeCount = db.prepare('SELECT COUNT(*) as count FROM game_progress').get() as { count: number };
 if (routeCount.count === 0) {
-  // Generate 8 unique route IDs and assign points (total 5000)
-  const points = [800, 700, 650, 650, 600, 600, 550, 450]; // Total: 5000
+  const { getRoutePointsArray } = require('./routes');
+  const routes = getRoutePointsArray();
   const insert = db.prepare('INSERT INTO game_progress (route_id, points) VALUES (?, ?)');
   
-  const routeIds = [
-    'ancient-temple-ruins',
-    'forbidden-crystal-cave',
-    'lost-city-of-gold',
-    'mysterious-jungle-path',
-    'hidden-treasure-vault',
-    'sacred-mountain-peak',
-    'desert-oasis-secret',
-    'underwater-archaeological-site'
-  ];
-  
   const insertMany = db.transaction((routes) => {
-    for (let i = 0; i < routes.length; i++) {
-      insert.run(routes[i], points[i]);
+    for (const route of routes) {
+      insert.run(route.routeId, route.points);
     }
   });
   
-  insertMany(routeIds);
+  insertMany(routes);
 }
 
 export default db;

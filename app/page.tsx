@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Confetti from 'react-confetti'
 import AdventureMap from '@/components/AdventureMap'
 import ProgressTracker from '@/components/ProgressTracker'
@@ -13,12 +12,9 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [loading, setLoading] = useState(true)
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
-  const router = useRouter()
 
   useEffect(() => {
     fetchGameState()
-    const interval = setInterval(fetchGameState, 2000) // Poll every 2 seconds
-    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -64,7 +60,17 @@ export default function Home() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        padding: '20px',
+        backgroundImage: 'url(/page-background.svg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        position: 'relative',
+      }}
+    >
       {showConfetti && windowSize.width > 0 && (
         <Confetti
           width={windowSize.width}
@@ -99,10 +105,7 @@ export default function Home() {
           totalRoutes={gameState.totalRoutes}
         />
 
-        <AdventureMap
-          routes={gameState.routes}
-          onRouteClick={(routeId) => router.push(`/route/${routeId}`)}
-        />
+        <AdventureMap routes={gameState.routes} />
       </div>
     </div>
   )

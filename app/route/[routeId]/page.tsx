@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Confetti from 'react-confetti';
 import { GameState } from '@/lib/game';
+import { getRouteById } from '@/lib/routes';
 
 export default function RoutePage() {
   const params = useParams();
@@ -15,8 +16,10 @@ export default function RoutePage() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(true);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [routeConfig, setRouteConfig] = useState(getRouteById(routeId));
 
   useEffect(() => {
+    setRouteConfig(getRouteById(routeId));
     checkRoute();
   }, [routeId]);
 
@@ -38,16 +41,17 @@ export default function RoutePage() {
       setGameState(data);
       
       const route = data.routes.find(r => r.routeId === routeId);
-      if (route) {
-        if (route.visited) {
-          setVisited(true);
-        } else {
-          // Visit the route
-          await visitRoute();
-        }
-      } else {
+      if (!route || !routeConfig) {
         // Invalid route
         router.push('/');
+        return;
+      }
+      
+      if (route.visited) {
+        setVisited(true);
+      } else {
+        // Visit the route
+        await visitRoute();
       }
       setLoading(false);
     } catch (error) {
@@ -72,8 +76,11 @@ export default function RoutePage() {
         setShowConfetti(true);
         setGameState(result.state);
         
-        // Hide confetti after 5 seconds
-        setTimeout(() => setShowConfetti(false), 5000);
+        // Add celebration animation delay
+        setTimeout(() => {
+          // Hide confetti after 5 seconds
+          setShowConfetti(false);
+        }, 5000);
       } else {
         router.push('/');
       }
@@ -81,28 +88,6 @@ export default function RoutePage() {
       console.error('Error visiting route:', error);
       router.push('/');
     }
-  };
-
-  const routeNames: { [key: string]: string } = {
-    'ancient-temple-ruins': 'Ancient Temple Ruins',
-    'forbidden-crystal-cave': 'Forbidden Crystal Cave',
-    'lost-city-of-gold': 'Lost City of Gold',
-    'mysterious-jungle-path': 'Mysterious Jungle Path',
-    'hidden-treasure-vault': 'Hidden Treasure Vault',
-    'sacred-mountain-peak': 'Sacred Mountain Peak',
-    'desert-oasis-secret': 'Desert Oasis Secret',
-    'underwater-archaeological-site': 'Underwater Archaeological Site',
-  };
-
-  const routeDescriptions: { [key: string]: string } = {
-    'ancient-temple-ruins': 'You\'ve discovered the ancient temple ruins! The walls whisper secrets of forgotten civilizations.',
-    'forbidden-crystal-cave': 'The forbidden crystal cave reveals its treasures! The crystals shimmer with otherworldly light.',
-    'lost-city-of-gold': 'The lost city of gold stands before you! Legends speak of untold riches hidden within.',
-    'mysterious-jungle-path': 'You\'ve found the mysterious jungle path! Ancient markers guide your way through the dense foliage.',
-    'hidden-treasure-vault': 'The hidden treasure vault opens! Centuries of accumulated wealth glimmer in the torchlight.',
-    'sacred-mountain-peak': 'You\'ve reached the sacred mountain peak! The view is breathtaking, and the air is filled with ancient energy.',
-    'desert-oasis-secret': 'The desert oasis secret is revealed! A hidden spring flows with crystal-clear water.',
-    'underwater-archaeological-site': 'You\'ve discovered the underwater archaeological site! Sunken treasures await discovery.',
   };
 
   if (loading) {
@@ -114,7 +99,17 @@ export default function RoutePage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '20px',
+      backgroundImage: 'url(/page-background.svg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+    }}>
       {showConfetti && windowSize.width > 0 && (
         <Confetti
           width={windowSize.width}
@@ -134,15 +129,16 @@ export default function RoutePage() {
         backdropFilter: 'blur(10px)',
         border: '3px solid rgba(255, 215, 0, 0.5)',
         boxShadow: '0 0 50px rgba(255, 215, 0, 0.3)',
+        animation: visited ? 'celebrateEntry 0.8s ease' : 'none',
       }}>
         {visited && (
           <>
             <div style={{ fontSize: '80px', marginBottom: '20px' }}>🎉</div>
             <h1 style={{ fontSize: '42px', marginBottom: '20px', color: '#FFD700' }}>
-              {routeNames[routeId] || 'Location Discovered!'}
+              {routeConfig?.name || 'Location Discovered!'}
             </h1>
             <p style={{ fontSize: '20px', marginBottom: '30px', lineHeight: '1.6', opacity: 0.9 }}>
-              {routeDescriptions[routeId] || 'You\'ve made an incredible discovery!'}
+              {routeConfig?.description || 'You\'ve made an incredible discovery!'}
             </p>
             
             <div style={{
@@ -190,6 +186,21 @@ export default function RoutePage() {
           </>
         )}
       </div>
+      <style jsx>{`
+        @keyframes celebrateEntry {
+          0% {
+            transform: scale(0.8);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.05);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }

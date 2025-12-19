@@ -12,8 +12,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchGameState();
-    const interval = setInterval(fetchGameState, 2000);
-    return () => clearInterval(interval);
   }, []);
 
   const fetchGameState = async () => {
@@ -62,7 +60,14 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '40px 20px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      padding: '40px 20px',
+      backgroundImage: 'url(/page-background.svg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundAttachment: 'fixed',
+    }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <header style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h1 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '10px' }}>
@@ -82,6 +87,20 @@ export default function AdminPage() {
             }}
           >
             ← Back to Game
+          </button>
+          <button
+            onClick={fetchGameState}
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '10px',
+              padding: '10px 20px',
+              fontSize: '16px',
+              color: '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            🔄 Refresh
           </button>
         </header>
 
