@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getGameState } from '@/lib/game';
 
+// Force dynamic rendering - disable caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const state = getGameState();

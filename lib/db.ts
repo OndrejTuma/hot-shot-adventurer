@@ -2,15 +2,71 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const dbPath = path.join(process.cwd(), 'data', 'game.db');
-const dbDir = path.dirname(dbPath);
-
-// Ensure data directory exists
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+// In Next.js standalone builds, process.cwd() might not be /app
+// Use an environment variable or fallback to a reliable path
+// For Docker containers, prefer /app/data if it exists, otherwise use process.cwd()
+let dataDir: string;
+if (process.env.DATA_DIR) {
+  dataDir = process.env.DATA_DIR;
+} else if (fs.existsSync('/app/data')) {
+  // Docker container with expected path
+  dataDir = '/app/data';
+} else {
+  // Development or other environments
+  dataDir = path.join(process.cwd(), 'data');
 }
 
-const db = new Database(dbPath);
+const dbPath = path.join(dataDir, 'game.db');
+const dbDir = path.dirname(dbPath);
+
+// Ensure data directory exists with proper error handling
+if (!fs.existsSync(dbDir)) {
+  try {
+    fs.mkdirSync(dbDir, { recursive: true, mode: 0o755 });
+    console.log(`Created data directory: ${dbDir}`);
+  } catch (error) {
+    console.error(`Failed to create data directory: ${dbDir}`, error);
+    throw new Error(`Cannot create data directory at ${dbDir}: ${error}`);
+  }
+}
+
+// Verify directory is writable before attempting to create database
+try {
+  fs.accessSync(dbDir, fs.constants.W_OK);
+} catch (error) {
+  console.error(`Data directory is not writable: ${dbDir}`);
+  console.error('Current user:', process.getuid ? process.getuid() : 'unknown');
+  console.error('Directory stats:', fs.statSync ? fs.statSync(dbDir) : 'unavailable');
+  throw new Error(`Data directory ${dbDir} is not writable. Check permissions.`);
+}
+
+// Create database with error handling
+let db: Database.Database;
+try {
+  db = new Database(dbPath);
+  console.log(`Database opened successfully at: ${dbPath}`);
+} catch (error) {
+  console.error('Failed to open database:', error);
+  console.error('Database path:', dbPath);
+  console.error('Current working directory:', process.cwd());
+  console.error('Data directory:', dataDir);
+  console.error('Data directory exists:', fs.existsSync(dbDir));
+  console.error('Database file exists:', fs.existsSync(dbPath));
+  if (fs.existsSync(dbDir)) {
+    try {
+      const stats = fs.statSync(dbDir);
+      console.error('Directory stats:', {
+        mode: stats.mode.toString(8),
+        uid: stats.uid,
+        gid: stats.gid,
+        isDirectory: stats.isDirectory()
+      });
+    } catch (e) {
+      console.error('Could not get directory stats:', e);
+    }
+  }
+  throw error;
+}
 
 // Initialize database schema
 db.exec(`
@@ -33,6 +89,7 @@ db.exec(`
 // Initialize routes if they don't exist
 const routeCount = db.prepare('SELECT COUNT(*) as count FROM game_progress').get() as { count: number };
 if (routeCount.count === 0) {
+  console.log('[db] Initializing routes - database was empty');
   const { getRoutePointsArray } = require('./routes');
   const routes = getRoutePointsArray();
   const insert = db.prepare('INSERT INTO game_progress (route_id, points) VALUES (?, ?)');
@@ -44,6 +101,11 @@ if (routeCount.count === 0) {
   });
   
   insertMany(routes);
+  console.log(`[db] Initialized ${routes.length} routes`);
+} else {
+  // Log current state for debugging
+  const sample = db.prepare('SELECT route_id, visited, visited_at FROM game_progress LIMIT 3').all();
+  console.log(`[db] Database already has ${routeCount.count} routes. Sample:`, sample);
 }
 
 export default db;

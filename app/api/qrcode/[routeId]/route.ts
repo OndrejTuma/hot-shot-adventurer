@@ -23,7 +23,7 @@ export async function GET(
     // Generate QR code as buffer
     const qrCodeBuffer = await QRCode.toBuffer(url, {
       errorCorrectionLevel: 'M',
-      type: 'image/png',
+      type: 'png',
       width: 300,
       margin: 1,
       color: {
@@ -33,7 +33,7 @@ export async function GET(
     });
     
     // Return as PNG image
-    return new NextResponse(qrCodeBuffer, {
+    return new NextResponse(qrCodeBuffer as any, {
       headers: {
         'Content-Type': 'image/png',
         'Content-Disposition': `inline; filename="qr-${routeId}.png"`
