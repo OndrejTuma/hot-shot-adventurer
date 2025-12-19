@@ -1,0 +1,46 @@
+import { NextRequest, NextResponse } from 'next/server';
+import QRCode from 'qrcode';
+import { getRouteById } from '@/lib/routes';
+
+const BASE_URL = 'http://46.101.197.134:99';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { routeId: string } }
+) {
+  try {
+    const { routeId } = params;
+    
+    // Verify route exists
+    const route = getRouteById(routeId);
+    if (!route) {
+      return new NextResponse('Route not found', { status: 404 });
+    }
+    
+    // Generate QR code URL
+    const url = `${BASE_URL}/route/${routeId}`;
+    
+    // Generate QR code as buffer
+    const qrCodeBuffer = await QRCode.toBuffer(url, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      width: 300,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    
+    // Return as PNG image
+    return new NextResponse(qrCodeBuffer, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Content-Disposition': `inline; filename="qr-${routeId}.png"`
+      }
+    });
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    return new NextResponse('Failed to generate QR code', { status: 500 });
+  }
+}

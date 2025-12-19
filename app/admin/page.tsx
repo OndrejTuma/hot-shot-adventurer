@@ -89,6 +89,21 @@ export default function AdminPage() {
             ← Back to Game
           </button>
           <button
+            onClick={() => router.push('/qrcodes')}
+            style={{
+              background: 'rgba(255, 215, 0, 0.3)',
+              border: '2px solid rgba(255, 215, 0, 0.5)',
+              borderRadius: '10px',
+              padding: '10px 20px',
+              fontSize: '16px',
+              color: '#FFD700',
+              cursor: 'pointer',
+              marginRight: '10px',
+            }}
+          >
+            📱 View QR Codes
+          </button>
+          <button
             onClick={fetchGameState}
             style={{
               background: 'rgba(255, 255, 255, 0.2)',
