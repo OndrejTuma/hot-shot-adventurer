@@ -35,7 +35,6 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
         borderRadius: '10px',
         border: '3px solid #8B4513',
         boxShadow: 'inset 0 0 50px rgba(0, 0, 0, 0.3)',
-        overflow: 'hidden',
         background: '#F5E6D3',
       }}>
         {/* Map background image */}
@@ -45,7 +44,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/floor-plan.jpeg)',
+          backgroundImage: 'url(/floor-plan.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -137,7 +136,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
                     fontWeight: 'bold',
                   }}
                 >
-                  {routeConfig.points} pts
+                  {routeConfig.points}
                 </div>
               )}
             </div>
