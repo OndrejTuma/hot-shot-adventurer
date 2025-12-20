@@ -52,7 +52,7 @@ export default function Home() {
           minHeight: '100vh',
         }}
       >
-        <div style={{ fontSize: '24px' }}>Loading your adventure...</div>
+        <div style={{ fontSize: '24px' }}>Načítám dobyvatele...</div>
       </div>
     )
   }
@@ -94,10 +94,11 @@ export default function Home() {
               fontFamily: 'serif',
             }}
           >
-            🏺 Hot Shot Adventurer 🏺
+            Drsňák dobyvatel<br />
+            🏺🏺🏺
           </h1>
           <p style={{ fontSize: '20px', opacity: 0.9 }}>
-            Embark on a legendary treasure hunt across ancient lands
+            Poslední hon za zlatem v Libni
           </p>
         </header>
 

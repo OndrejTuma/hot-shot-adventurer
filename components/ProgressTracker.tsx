@@ -1,5 +1,6 @@
 'use client';
 
+import { getTotalPoints } from '@/lib/routes'
 import { useEffect, useState } from 'react';
 
 interface ProgressTrackerProps {
@@ -45,23 +46,16 @@ export default function ProgressTracker({ totalPoints, visitedRoutes, totalRoute
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '5px' }}>Treasure Collected</div>
+          <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '5px' }}>Nalezených mincí</div>
           <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#FFD700' }}>
-            🪙 {animatedPoints.toLocaleString()} / 5,000
+            🪙 {animatedPoints.toLocaleString('cs-CZ')}
           </div>
         </div>
         
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '5px' }}>Locations Discovered</div>
+          <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '5px' }}>Objevených pokladů</div>
           <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#FFD700' }}>
             🗺️ {visitedRoutes} / {totalRoutes}
-          </div>
-        </div>
-        
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '14px', opacity: 0.8, marginBottom: '5px' }}>Progress</div>
-          <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#FFD700' }}>
-            {Math.round((visitedRoutes / totalRoutes) * 100)}%
           </div>
         </div>
       </div>
@@ -76,7 +70,7 @@ export default function ProgressTracker({ totalPoints, visitedRoutes, totalRoute
           border: '1px solid rgba(255, 215, 0, 0.3)',
         }}>
           <div style={{
-            width: `${(totalPoints / 5000) * 100}%`,
+            width: `${(totalPoints / getTotalPoints()) * 100}%`,
             height: '100%',
             background: 'linear-gradient(90deg, #FFD700 0%, #FFA500 100%)',
             transition: 'width 0.5s ease',
@@ -88,7 +82,7 @@ export default function ProgressTracker({ totalPoints, visitedRoutes, totalRoute
             fontWeight: 'bold',
             color: '#000',
           }}>
-            {totalPoints > 0 && `${Math.round((totalPoints / 5000) * 100)}%`}
+            {totalPoints > 0 && `${Math.round((totalPoints / getTotalPoints()) * 100)}%`}
           </div>
         </div>
       </div>

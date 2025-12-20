@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Hot Shot Adventurer',
-  description: 'An Indiana Jones-style treasure hunting game',
+  title: 'Drsňák dobyvatel',
+  description: 'Hra o poklady',
 }
 
 export default function RootLayout({

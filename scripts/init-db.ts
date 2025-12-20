@@ -1,9 +1,10 @@
 // This script initializes the database if needed
 // It's automatically run when the app starts, but can be run manually if needed
 
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+import { getRoutePointsArray } from '../lib/routes';
 
 const dbPath = path.join(process.cwd(), 'data', 'game.db');
 const dbDir = path.dirname(dbPath);
@@ -34,34 +35,22 @@ db.exec(`
 `);
 
 // Initialize routes if they don't exist
-const routeCount = db.prepare('SELECT COUNT(*) as count FROM game_progress').get();
+const routeCount = db.prepare('SELECT COUNT(*) as count FROM game_progress').get() as { count: number };
 if (routeCount.count === 0) {
-  // Generate 8 unique route IDs and assign points (total 5000)
-  const points = [800, 700, 650, 650, 600, 600, 550, 450]; // Total: 5000
+  // Get route data from routes.ts
+  const routes = getRoutePointsArray();
   const insert = db.prepare('INSERT INTO game_progress (route_id, points) VALUES (?, ?)');
   
-  const routeIds = [
-    'ancient-temple-ruins',
-    'forbidden-crystal-cave',
-    'lost-city-of-gold',
-    'mysterious-jungle-path',
-    'hidden-treasure-vault',
-    'sacred-mountain-peak',
-    'desert-oasis-secret',
-    'underwater-archaeological-site'
-  ];
-  
   const insertMany = db.transaction((routes) => {
-    for (let i = 0; i < routes.length; i++) {
-      insert.run(routes[i], points[i]);
+    for (const route of routes) {
+      insert.run(route.routeId, route.points);
     }
   });
   
-  insertMany(routeIds);
-  console.log('Database initialized with 8 routes');
+  insertMany(routes);
+  console.log(`Database initialized with ${routes.length} routes`);
 } else {
   console.log('Database already initialized');
 }
 
 db.close();
-

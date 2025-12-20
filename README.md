@@ -104,6 +104,15 @@ The game uses SQLite for persistent storage. The database file is stored in the 
 └── Makefile          # Build and deployment commands
 ```
 
+## TODO
+
+- [ ] Initial router
+- [ ] Translations
+- [ ] Notification system
+- [ ] Logo
+- [ ] Remove clickable handlers on unvisited routes
+- [ ] Add helper dialogs after double clicks
+
 ## License
 
 MIT

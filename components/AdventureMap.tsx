@@ -25,7 +25,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
         fontSize: '28px',
         textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
       }}>
-        🗺️ Adventure Map
+        🗺️ Mapa pokladů
       </h2>
       
       <div style={{
