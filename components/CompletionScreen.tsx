@@ -137,7 +137,7 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
             >
               {formatTime(countdown)}
             </div>
-            <CoinPurseAnimation />
+            <CoinPurseAnimation countdownSeconds={60} />
             <p style={{ fontSize: '20px', opacity: 0.9, marginTop: '20px' }}>
               Budeš si muset chvíli počkat
             </p>

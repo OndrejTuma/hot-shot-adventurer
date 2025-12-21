@@ -9,16 +9,27 @@ interface Coin {
   vy: number
   rotation: number
   rotationSpeed: number
+  tilt3D: number
+  tiltSpeed: number
   size: number
   color: string
   collected: boolean
-  settled: boolean // Whether coin has stopped moving
+  settled: boolean
+  columnIndex: number
 }
 
-export default function CoinPurseAnimation() {
+interface CoinPurseAnimationProps {
+  countdownSeconds: number
+}
+
+export default function CoinPurseAnimation({ countdownSeconds }: CoinPurseAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationFrameRef = useRef<number>()
   const coinsRef = useRef<Coin[]>([])
+  const startTimeRef = useRef<number | null>(null)
+  const lastSpawnTimeRef = useRef<number>(0)
+  const spawnAccumulatorRef = useRef<number>(0)
+  const totalCoinsSpawnedRef = useRef<number>(0)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -27,240 +38,153 @@ export default function CoinPurseAnimation() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = 400
-      canvas.height = 500
-    }
-    resizeCanvas()
+    canvas.width = 400
+    canvas.height = 500
 
     const canvasBottom = canvas.height
     const canvasWidth = canvas.width
 
-    // Create initial coins
+    const numColumns = 8
+    const columnSpacing = canvasWidth / (numColumns + 1)
+    const columnPositions = Array.from(
+      { length: numColumns },
+      (_, i) => columnSpacing * (i + 1)
+    )
+
+    const COIN_SIZE = 20
+    const SETTLED_COIN_HEIGHT = COIN_SIZE * 0.4
+    const COIN_SPACING = SETTLED_COIN_HEIGHT * 0.85
+
+    const availableHeight = canvasBottom - SETTLED_COIN_HEIGHT
+    const coinsPerColumn = Math.floor(availableHeight / COIN_SPACING) + 1
+    const totalCoinsNeeded = coinsPerColumn * numColumns
+
+    const coinsPerSecond = totalCoinsNeeded / countdownSeconds
+
     const createCoin = (): Coin => {
-      // Spawn coins from random positions across the top
-      const spawnX = Math.random() * canvasWidth
-      
+      const columnIndex = Math.floor(Math.random() * numColumns)
+
       return {
-        x: spawnX,
+        columnIndex,
+        x: columnPositions[columnIndex],
         y: -30,
-        vx: (Math.random() - 0.5) * 2, // Random horizontal velocity
-        vy: Math.random() * 1.5 + 1,
+        vx: (Math.random() - 0.3) * 0.3,
+        vy: Math.random() * 0.5 + 1.5,
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.2,
-        size: 15 + Math.random() * 10,
+        rotationSpeed: (Math.random() - 0.5) * 0.15,
+        tilt3D: Math.random() * Math.PI * 2,
+        tiltSpeed: (Math.random() * 0.08 + 0.05) * (Math.random() > 0.5 ? 1 : -1),
+        size: COIN_SIZE,
         color: Math.random() > 0.5 ? '#FFD700' : '#FFA500',
         collected: false,
         settled: false,
       }
     }
 
-    // Check if coin collides with another coin (for stacking)
-    const checkCoinCollision = (coin: Coin, otherCoins: Coin[]): Coin | null => {
-      for (const other of otherCoins) {
-        if (other === coin || other.collected) continue
-        
-        const dx = coin.x - other.x
-        const dy = coin.y - other.y
-        const distance = Math.sqrt(dx * dx + dy * dy)
-        const minDistance = coin.size + other.size
-        
-        // Check if coins are overlapping
-        if (distance < minDistance) {
-          // Check if this coin is above the other coin
-          if (coin.y < other.y) {
-            return other
-          }
-        }
-      }
-      return null
-    }
-
-    // Draw a coin
     const drawCoin = (coin: Coin) => {
       ctx.save()
       ctx.translate(coin.x, coin.y)
       ctx.rotate(coin.rotation)
 
-      // Coin gradient
-      const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, coin.size)
-      gradient.addColorStop(0, coin.color)
-      gradient.addColorStop(0.7, coin.color)
-      gradient.addColorStop(1, '#B8860B')
+      if (coin.settled) {
+        const w = coin.size * 2
+        const h = SETTLED_COIN_HEIGHT
 
-      ctx.fillStyle = gradient
-      ctx.beginPath()
-      ctx.arc(0, 0, coin.size, 0, Math.PI * 2)
-      ctx.fill()
+        ctx.fillStyle = coin.color
+        ctx.beginPath()
+        ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2)
+        ctx.fill()
+      } else {
+        const tilt = Math.abs(Math.sin(coin.tilt3D))
+        const w = coin.size * 2 * (1 - tilt * 0.5)
+        const h = coin.size * 2 * tilt + coin.size * 0.3
 
-      // Coin edge
-      ctx.strokeStyle = '#B8860B'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      // Coin shine
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-      ctx.beginPath()
-      ctx.arc(-coin.size * 0.3, -coin.size * 0.3, coin.size * 0.3, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Coin symbol (simple $ or coin design)
-      ctx.fillStyle = '#654321'
-      ctx.font = `bold ${coin.size * 0.6}px Arial`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('₿', 0, 0)
+        ctx.fillStyle = coin.color
+        ctx.beginPath()
+        ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2)
+        ctx.fill()
+      }
 
       ctx.restore()
     }
 
-
-    // Animation loop
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      // Spawn new coins occasionally
-      if (Math.random() < 0.03 && coinsRef.current.length < 50) {
-        coinsRef.current.push(createCoin())
+    const animate = (time: number) => {
+      if (startTimeRef.current === null) {
+        startTimeRef.current = time
+        lastSpawnTimeRef.current = time
       }
 
-      // Separate coins into falling and stacked
-      const fallingCoins: Coin[] = []
-      const stackedCoins: Coin[] = []
+      const elapsed = (time - startTimeRef.current) / 1000
+      const remaining = countdownSeconds - elapsed
 
-      // First pass: identify which coins are stacked (stopped)
-      coinsRef.current.forEach((coin) => {
-        if (coin.collected || coin.settled) {
-          stackedCoins.push(coin)
-          return
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      if (remaining > 0 && totalCoinsSpawnedRef.current < totalCoinsNeeded) {
+        const dt = (time - lastSpawnTimeRef.current) / 1000
+        spawnAccumulatorRef.current += coinsPerSecond * dt
+
+        while (spawnAccumulatorRef.current >= 1) {
+          coinsRef.current.push(createCoin())
+          spawnAccumulatorRef.current--
+          totalCoinsSpawnedRef.current++
         }
 
-        // Check if coin has hit the bottom
-        const bottomY = canvasBottom - coin.size
-        if (coin.y >= bottomY) {
-          coin.y = bottomY
-          coin.vy = 0
-          coin.vx = 0
-          coin.rotationSpeed = 0
-          coin.rotation = 0 // Make coin flat
-          coin.settled = true
-          stackedCoins.push(coin)
-          return
-        }
+        lastSpawnTimeRef.current = time
+      }
 
-        // Check if coin is colliding with a settled coin
-        const collidingCoin = checkCoinCollision(coin, coinsRef.current)
-        if (collidingCoin && collidingCoin.settled) {
-          // Position coin on top of the stacked coin
-          const stackY = collidingCoin.y - collidingCoin.size - coin.size
-          if (coin.y >= stackY - 5) {
-            coin.y = stackY
-            coin.vy = 0
-            coin.vx = 0
-            coin.rotationSpeed = 0
-            coin.rotation = 0 // Make coin flat
-            coin.settled = true
-            stackedCoins.push(coin)
-            return
-          }
-        }
+      const unsettled = coinsRef.current
+        .filter(c => !c.collected && !c.settled)
+        .sort((a, b) => b.y - a.y)
 
-        fallingCoins.push(coin)
-      })
-
-      // Update falling coins
-      fallingCoins.forEach((coin) => {
-        if (coin.settled) return // Skip if already settled
-
-        // Apply gravity
+      unsettled.forEach(coin => {
         coin.vy += 0.15
-
-        // Apply slight air resistance to horizontal movement
-        coin.vx *= 0.99
-
-        // Update position
         coin.x += coin.vx
         coin.y += coin.vy
         coin.rotation += coin.rotationSpeed
+        coin.tilt3D += coin.tiltSpeed
 
-        // Keep coins within canvas bounds horizontally
-        if (coin.x < coin.size) {
-          coin.x = coin.size
-          coin.vx *= -0.5 // Bounce off left wall
-        } else if (coin.x > canvasWidth - coin.size) {
-          coin.x = canvasWidth - coin.size
-          coin.vx *= -0.5 // Bounce off right wall
-        }
+        const columnCoins = coinsRef.current
+          .filter(c => c.settled && c.columnIndex === coin.columnIndex)
 
-        // Check if coin should now be settled (hit bottom or another coin)
-        const bottomY = canvasBottom - coin.size
-        if (coin.y >= bottomY) {
-          coin.y = bottomY
-          coin.vy = 0
+        const topY =
+          columnCoins.length > 0
+            ? Math.min(...columnCoins.map(c => c.y)) - COIN_SPACING
+            : canvasBottom - SETTLED_COIN_HEIGHT / 2
+
+        if (coin.y >= topY) {
+          coin.y = topY
+          coin.x = columnPositions[coin.columnIndex]
           coin.vx = 0
-          coin.rotationSpeed = 0
-          coin.rotation = 0 // Make coin flat
+          coin.vy = 0
+          coin.rotation = 0
+          coin.tilt3D = Math.PI / 2
           coin.settled = true
-          return
-        }
-
-        // Check collision with any settled coin
-        const collidingCoin = checkCoinCollision(coin, coinsRef.current)
-        if (collidingCoin && collidingCoin.settled) {
-          // Position coin on top of the colliding coin
-          const stackY = collidingCoin.y - collidingCoin.size - coin.size
-          if (coin.y >= stackY - 5) {
-            coin.y = stackY
-            coin.vy = 0
-            coin.vx = 0
-            coin.rotationSpeed = 0
-            coin.rotation = 0 // Make coin flat
-            coin.settled = true
-          }
         }
       })
 
-      // Draw all coins
-      coinsRef.current.forEach((coin) => {
-        if (!coin.collected) {
-          drawCoin(coin)
-        }
-      })
-
+      coinsRef.current.forEach(drawCoin)
       animationFrameRef.current = requestAnimationFrame(animate)
     }
 
-    // Start animation
-    animate()
+    animationFrameRef.current = requestAnimationFrame(animate)
 
-    // Cleanup
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [])
+  }, [countdownSeconds])
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: '20px',
-        marginBottom: '20px',
-      }}
-    >
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
       <canvas
         ref={canvasRef}
         style={{
-          border: '2px solid rgba(255, 215, 0, 0.3)',
-          borderRadius: '10px',
-          background: 'rgba(0, 0, 0, 0.2)',
+          border: '2px solid rgba(255,215,0,0.3)',
+          borderRadius: 10,
+          background: 'rgba(0,0,0,0.2)',
         }}
       />
     </div>
   )
 }
-
