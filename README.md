@@ -107,7 +107,7 @@ The game uses SQLite for persistent storage. The database file is stored in the 
 ## TODO
 
 - [ ] Initial router
-- [ ] Translations
+- [x] Translations
 - [ ] Notification system
 - [ ] Logo
 - [ ] Remove clickable handlers on unvisited routes

@@ -12,6 +12,7 @@ interface Coin {
   size: number
   color: string
   collected: boolean
+  settled: boolean // Whether coin has stopped moving
 }
 
 export default function CoinPurseAnimation() {
@@ -33,105 +34,47 @@ export default function CoinPurseAnimation() {
     }
     resizeCanvas()
 
-    // Coin purse position and dimensions
-    const purseX = canvas.width / 2
-    const purseY = canvas.height - 80
-    const purseWidth = 120
-    const purseHeight = 60
+    const canvasBottom = canvas.height
+    const canvasWidth = canvas.width
 
     // Create initial coins
     const createCoin = (): Coin => {
-      // Spawn coins from various positions across the top, but within range to reach purse
-      const spawnRange = purseWidth * 2.5 // Wider spawn range for variety
-      const spawnX = purseX + (Math.random() - 0.5) * spawnRange
-      
-      // Calculate initial velocity to help coin reach purse
-      // Add some randomness for different directions
-      const targetX = purseX + (Math.random() - 0.5) * (purseWidth * 0.6)
-      const distanceToPurse = purseY - (-30)
-      const horizontalDistance = targetX - spawnX
-      
-      // Initial horizontal velocity with variation
-      const baseVx = (horizontalDistance / distanceToPurse) * 2
-      const vxVariation = (Math.random() - 0.5) * 1.5 // Add randomness for different directions
+      // Spawn coins from random positions across the top
+      const spawnX = Math.random() * canvasWidth
       
       return {
         x: spawnX,
         y: -30,
-        vx: baseVx + vxVariation,
+        vx: (Math.random() - 0.5) * 2, // Random horizontal velocity
         vy: Math.random() * 1.5 + 1,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.2,
         size: 15 + Math.random() * 10,
         color: Math.random() > 0.5 ? '#FFD700' : '#FFA500',
         collected: false,
+        settled: false,
       }
     }
 
-    // Draw coin purse
-    const drawPurse = () => {
-      ctx.save()
-      
-      // Purse body (brown leather bag)
-      const gradient = ctx.createLinearGradient(
-        purseX - purseWidth / 2,
-        purseY - purseHeight / 2,
-        purseX + purseWidth / 2,
-        purseY + purseHeight / 2
-      )
-      gradient.addColorStop(0, '#8B4513')
-      gradient.addColorStop(0.5, '#654321')
-      gradient.addColorStop(1, '#3D2817')
-      
-      ctx.fillStyle = gradient
-      ctx.beginPath()
-      ctx.ellipse(
-        purseX,
-        purseY,
-        purseWidth / 2,
-        purseHeight / 2,
-        0,
-        0,
-        Math.PI * 2
-      )
-      ctx.fill()
-      
-      // Purse opening (darker)
-      ctx.fillStyle = '#2F1B14'
-      ctx.beginPath()
-      ctx.ellipse(
-        purseX,
-        purseY - 10,
-        purseWidth / 2.5,
-        purseHeight / 4,
-        0,
-        0,
-        Math.PI * 2
-      )
-      ctx.fill()
-      
-      // Purse stitching
-      ctx.strokeStyle = '#654321'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.arc(purseX, purseY, purseWidth / 2 - 5, 0, Math.PI * 2)
-      ctx.stroke()
-      
-      // Purse highlight
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
-      ctx.beginPath()
-      ctx.ellipse(
-        purseX - 20,
-        purseY - 15,
-        30,
-        20,
-        -0.3,
-        0,
-        Math.PI * 2
-      )
-      ctx.fill()
-      
-      ctx.restore()
+    // Check if coin collides with another coin (for stacking)
+    const checkCoinCollision = (coin: Coin, otherCoins: Coin[]): Coin | null => {
+      for (const other of otherCoins) {
+        if (other === coin || other.collected) continue
+        
+        const dx = coin.x - other.x
+        const dy = coin.y - other.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+        const minDistance = coin.size + other.size
+        
+        // Check if coins are overlapping
+        if (distance < minDistance) {
+          // Check if this coin is above the other coin
+          if (coin.y < other.y) {
+            return other
+          }
+        }
+      }
+      return null
     }
 
     // Draw a coin
@@ -172,52 +115,63 @@ export default function CoinPurseAnimation() {
       ctx.restore()
     }
 
-    // Check if coin is collected (falls into purse)
-    const isCoinCollected = (coin: Coin): boolean => {
-      const dx = coin.x - purseX
-      const dy = coin.y - purseY
-      const distance = Math.sqrt(dx * dx + dy * dy)
-      return distance < purseWidth / 2 && coin.y > purseY - purseHeight / 2
-    }
 
     // Animation loop
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Draw purse
-      drawPurse()
-
       // Spawn new coins occasionally
-      if (Math.random() < 0.03 && coinsRef.current.length < 15) {
+      if (Math.random() < 0.03 && coinsRef.current.length < 50) {
         coinsRef.current.push(createCoin())
       }
 
-      // Update and draw coins
-      coinsRef.current = coinsRef.current.filter((coin) => {
-        if (coin.collected) {
-          // Coin is collected, make it disappear
-          return false
+      // Separate coins into falling and stacked
+      const fallingCoins: Coin[] = []
+      const stackedCoins: Coin[] = []
+
+      // First pass: identify which coins are stacked (stopped)
+      coinsRef.current.forEach((coin) => {
+        if (coin.collected || coin.settled) {
+          stackedCoins.push(coin)
+          return
         }
 
-        // Apply attraction force toward purse (magnetic effect)
-        const dx = purseX - coin.x
-        const dy = purseY - coin.y
-        const distance = Math.sqrt(dx * dx + dy * dy)
-        
-        // Stronger attraction as coin gets closer to purse
-        const attractionStrength = Math.max(0, 0.3 * (1 - distance / 300))
-        if (distance > 0) {
-          coin.vx += (dx / distance) * attractionStrength
-          // Only apply vertical attraction if coin is above purse
-          if (coin.y < purseY) {
-            coin.vy += (dy / distance) * attractionStrength * 0.3
+        // Check if coin has hit the bottom
+        const bottomY = canvasBottom - coin.size
+        if (coin.y >= bottomY) {
+          coin.y = bottomY
+          coin.vy = 0
+          coin.vx = 0
+          coin.rotationSpeed = 0
+          coin.rotation = 0 // Make coin flat
+          coin.settled = true
+          stackedCoins.push(coin)
+          return
+        }
+
+        // Check if coin is colliding with a settled coin
+        const collidingCoin = checkCoinCollision(coin, coinsRef.current)
+        if (collidingCoin && collidingCoin.settled) {
+          // Position coin on top of the stacked coin
+          const stackY = collidingCoin.y - collidingCoin.size - coin.size
+          if (coin.y >= stackY - 5) {
+            coin.y = stackY
+            coin.vy = 0
+            coin.vx = 0
+            coin.rotationSpeed = 0
+            coin.rotation = 0 // Make coin flat
+            coin.settled = true
+            stackedCoins.push(coin)
+            return
           }
         }
 
-        // Update position
-        coin.x += coin.vx
-        coin.y += coin.vy
-        coin.rotation += coin.rotationSpeed
+        fallingCoins.push(coin)
+      })
+
+      // Update falling coins
+      fallingCoins.forEach((coin) => {
+        if (coin.settled) return // Skip if already settled
 
         // Apply gravity
         coin.vy += 0.15
@@ -225,20 +179,53 @@ export default function CoinPurseAnimation() {
         // Apply slight air resistance to horizontal movement
         coin.vx *= 0.99
 
-        // Check if collected
-        if (isCoinCollected(coin)) {
-          coin.collected = true
-          return false
+        // Update position
+        coin.x += coin.vx
+        coin.y += coin.vy
+        coin.rotation += coin.rotationSpeed
+
+        // Keep coins within canvas bounds horizontally
+        if (coin.x < coin.size) {
+          coin.x = coin.size
+          coin.vx *= -0.5 // Bounce off left wall
+        } else if (coin.x > canvasWidth - coin.size) {
+          coin.x = canvasWidth - coin.size
+          coin.vx *= -0.5 // Bounce off right wall
         }
 
-        // Remove if off screen (but give coins more time to reach purse)
-        if (coin.y > canvas.height + 100) {
-          return false
+        // Check if coin should now be settled (hit bottom or another coin)
+        const bottomY = canvasBottom - coin.size
+        if (coin.y >= bottomY) {
+          coin.y = bottomY
+          coin.vy = 0
+          coin.vx = 0
+          coin.rotationSpeed = 0
+          coin.rotation = 0 // Make coin flat
+          coin.settled = true
+          return
         }
 
-        // Draw coin
-        drawCoin(coin)
-        return true
+        // Check collision with any settled coin
+        const collidingCoin = checkCoinCollision(coin, coinsRef.current)
+        if (collidingCoin && collidingCoin.settled) {
+          // Position coin on top of the colliding coin
+          const stackY = collidingCoin.y - collidingCoin.size - coin.size
+          if (coin.y >= stackY - 5) {
+            coin.y = stackY
+            coin.vy = 0
+            coin.vx = 0
+            coin.rotationSpeed = 0
+            coin.rotation = 0 // Make coin flat
+            coin.settled = true
+          }
+        }
+      })
+
+      // Draw all coins
+      coinsRef.current.forEach((coin) => {
+        if (!coin.collected) {
+          drawCoin(coin)
+        }
       })
 
       animationFrameRef.current = requestAnimationFrame(animate)
