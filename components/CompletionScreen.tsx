@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Confetti from 'react-confetti'
 import { GameState } from '@/lib/game'
-import CoinPurseAnimation from './CoinPurseAnimation'
+import CoinAnimation from './CoinAnimation'
 
 interface CompletionScreenProps {
   gameState: GameState
@@ -32,7 +32,7 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
   const handleClaimPrize = () => {
     setShowClaimButton(false)
     setShowConfetti(false) // Turn off confetti during countdown
-    setCountdown(5 * 60) // 5 minutes in seconds
+    setCountdown(3 * 60) // 3 minutes in seconds
   }
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
             >
               {formatTime(countdown)}
             </div>
-            <CoinPurseAnimation countdownSeconds={60} />
+            <CoinAnimation countdownSeconds={countdown} />
             <p style={{ fontSize: '20px', opacity: 0.9, marginTop: '20px' }}>
               Budeš si muset chvíli počkat
             </p>
