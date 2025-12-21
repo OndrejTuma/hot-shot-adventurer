@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { visitRoute, getGameState } from '@/lib/game';
+import { getRouteById } from '@/lib/routes';
+import { sendTelegramNotification, formatRouteVisitNotification } from '@/lib/telegram';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +18,24 @@ export async function POST(request: NextRequest) {
     }
     
     const state = getGameState();
+    
+    // Send Telegram notification (non-blocking, don't fail if it errors)
+    const routeConfig = getRouteById(routeId);
+    if (routeConfig) {
+      const notificationMessage = formatRouteVisitNotification(
+        routeConfig.name,
+        routeId,
+        result.points,
+        state.totalPoints,
+        state.visitedRoutes,
+        state.totalRoutes
+      );
+      
+      // Send notification asynchronously, don't wait for it
+      sendTelegramNotification(notificationMessage).catch((error) => {
+        console.error('[Visit Route] Failed to send Telegram notification:', error);
+      });
+    }
     
     return NextResponse.json({
       success: true,

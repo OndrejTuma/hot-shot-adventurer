@@ -88,6 +88,54 @@ Access the admin panel at `/admin` to:
 
 The game uses SQLite for persistent storage. The database file is stored in the `data/` directory and is automatically initialized on first run.
 
+## Telegram Notifications
+
+The game can send Telegram notifications when a treasure route is visited. To enable this feature:
+
+### Setup Instructions
+
+1. **Create a Telegram Bot:**
+   - Open Telegram and search for [@BotFather](https://t.me/botfather)
+   - Send `/newbot` and follow the instructions to create a new bot
+   - Save the bot token you receive (e.g., `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
+
+2. **Get Your Chat ID (Choose one method):**
+   
+   **Method 1 - Using a helper bot (Easiest):**
+   - Open Telegram and search for [@userinfobot](https://t.me/userinfobot) or [@getidsbot](https://t.me/getidsbot)
+   - Start a conversation with the bot
+   - The bot will immediately reply with your chat ID (look for a number like `123456789`)
+   
+   **Method 2 - Using your own bot:**
+   - Start a conversation with your newly created bot
+   - Send any message to your bot (e.g., "Hello")
+   - Open your browser and visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+     - Replace `<YOUR_BOT_TOKEN>` with the actual token from BotFather
+   - In the JSON response, look for `"chat":{"id":` - the number after `"id":` is your chat ID
+   
+   **Method 3 - Using @RawDataBot:**
+   - Search for [@RawDataBot](https://t.me/RawDataBot) on Telegram
+   - Start a conversation - it will show all your Telegram data including your chat ID
+
+3. **Configure Environment Variables:**
+   - Create a `.env.local` file in the project root (or add to your existing environment configuration)
+   - Add the following variables:
+     ```
+     TELEGRAM_BOT_TOKEN=your_bot_token_here
+     TELEGRAM_CHAT_ID=your_chat_id_here
+     ```
+
+4. **For Docker Deployment:**
+   - Add the environment variables to your `docker-compose.yml` file:
+     ```yaml
+     environment:
+       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+     ```
+   - Or create a `.env` file in the project root with the variables
+
+**Note:** If the Telegram credentials are not configured, the application will continue to work normally without sending notifications. The notification system is non-blocking and won't affect the game functionality if it fails.
+
 ## Project Structure
 
 ```
@@ -108,7 +156,7 @@ The game uses SQLite for persistent storage. The database file is stored in the 
 
 - [ ] Initial loader
 - [x] Translations
-- [ ] Notification system
+- [x] Notification system
 - [ ] Logo
 - [ ] Remove clickable handlers on unvisited routes
 - [ ] Add helper dialogs after double clicks
