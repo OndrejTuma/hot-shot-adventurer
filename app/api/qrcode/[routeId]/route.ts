@@ -11,14 +11,21 @@ export async function GET(
   try {
     const { routeId } = params;
     
-    // Verify route exists
-    const route = getRouteById(routeId);
-    if (!route) {
-      return new NextResponse('Route not found', { status: 404 });
-    }
+    let url: string;
     
-    // Generate QR code URL
-    const url = `${BASE_URL}/route/${routeId}`;
+    // Handle homepage QR code
+    if (routeId === 'home') {
+      url = BASE_URL;
+    } else {
+      // Verify route exists
+      const route = getRouteById(routeId);
+      if (!route) {
+        return new NextResponse('Route not found', { status: 404 });
+      }
+      
+      // Generate QR code URL
+      url = `${BASE_URL}/route/${routeId}`;
+    }
     
     // Generate QR code as buffer
     const qrCodeBuffer = await QRCode.toBuffer(url, {

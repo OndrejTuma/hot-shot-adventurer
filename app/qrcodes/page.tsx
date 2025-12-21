@@ -59,6 +59,75 @@ export default function QRCodesPage() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
           gap: '30px',
         }}>
+          {/* Homepage QR Code */}
+          <div
+            style={{
+              background: 'rgba(0, 0, 0, 0.5)',
+              borderRadius: '15px',
+              padding: '30px',
+              backdropFilter: 'blur(10px)',
+              border: '2px solid rgba(255, 215, 0, 0.3)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <h3 style={{ 
+              fontSize: '20px', 
+              fontWeight: 'bold', 
+              marginBottom: '15px',
+              color: '#FFD700',
+            }}>
+              🏠 Homepage
+            </h3>
+            
+            <div style={{
+              background: '#fff',
+              padding: '15px',
+              borderRadius: '10px',
+              marginBottom: '15px',
+              display: 'inline-block',
+            }}>
+              <img
+                src="/api/qrcode/home"
+                alt="QR code for homepage"
+                style={{
+                  width: '200px',
+                  height: '200px',
+                  display: 'block',
+                }}
+              />
+            </div>
+            
+            <div style={{
+              fontSize: '14px',
+              opacity: 0.8,
+              marginBottom: '10px',
+              wordBreak: 'break-all',
+            }}>
+              http://46.101.197.134:99
+            </div>
+            
+            <a
+              href="/api/qrcode/home"
+              download="qr-home.png"
+              style={{
+                marginTop: '15px',
+                padding: '8px 16px',
+                background: 'rgba(255, 215, 0, 0.2)',
+                border: '1px solid rgba(255, 215, 0, 0.5)',
+                borderRadius: '8px',
+                color: '#FFD700',
+                textDecoration: 'none',
+                fontSize: '14px',
+                cursor: 'pointer',
+              }}
+            >
+              Download QR Code
+            </a>
+          </div>
+
           {ROUTES.map((route) => {
             const url = `http://46.101.197.134:99/route/${route.routeId}`;
             return (
