@@ -1,38 +1,42 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Confetti from 'react-confetti'
 import { GameState } from '@/lib/game'
-import CoinAnimation from './CoinAnimation'
+import { CoinRain } from './CoinRain'
+import { getDocumentHeight } from '@/lib/document'
 
 interface CompletionScreenProps {
   gameState: GameState
 }
 
+const COUNTDOWN_SECONDS = 3 * 60 // 3 minutes in seconds
+
 export default function CompletionScreen({ gameState }: CompletionScreenProps) {
-  const [showClaimButton, setShowClaimButton] = useState(true)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [showPrizeMessage, setShowPrizeMessage] = useState(false)
   const [showConfetti, setShowConfetti] = useState(true)
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
-  const router = useRouter()
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
-      const handleResize = () => {
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight })
-      }
-      window.addEventListener('resize', handleResize)
-      return () => window.removeEventListener('resize', handleResize)
+    setWindowSize({
+      width: window.innerWidth,
+      height: getDocumentHeight(document),
+    })
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: getDocumentHeight(document),
+      })
     }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   const handleClaimPrize = () => {
-    setShowClaimButton(false)
     setShowConfetti(false) // Turn off confetti during countdown
-    setCountdown(3 * 60) // 3 minutes in seconds
+    setCountdown(COUNTDOWN_SECONDS)
   }
 
   useEffect(() => {
@@ -85,7 +89,7 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
           textAlign: 'center',
           background: 'rgba(0, 0, 0, 0.5)',
           borderRadius: '20px',
-          padding: '60px 40px',
+          padding: '60px 40px 60px',
           backdropFilter: 'blur(10px)',
           border: '3px solid rgba(255, 215, 0, 0.5)',
           boxShadow: '0 0 50px rgba(255, 215, 0, 0.3)',
@@ -93,29 +97,39 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
       >
         {showPrizeMessage ? (
           <>
-            <div style={{ fontSize: '80px', marginBottom: '20px' }}>🎁</div>
-            <h1
-              style={{
-                fontSize: '48px',
-                marginBottom: '20px',
-                color: '#FFD700',
-              }}
-            >
-              A je to doma
-            </h1>
-            <p
-              style={{
-                fontSize: '24px',
-                marginBottom: '30px',
-                lineHeight: '1.6',
-              }}
-            >
-              Sečteno a podtrženo jsi borec tati. Doufám, že sis svůj vánoční dárek užil a že to nezpůsobilo žádné nepříjemné situace při hledání - nedošlo mi, že možná budeš muset semtam něco přehrábnout. Tak snad z toho mamce nezešedivěly vlasy 😁
-            </p>
+            <Image
+              src='/dobyvatel.webp'
+              alt='Dobyvatel'
+              width={300}
+              height={300}
+              style={{ float: 'left', marginBottom: '20px' }}
+            />
+            <div >
+              <h1
+                style={{
+                  fontSize: '48px',
+                  marginBottom: '20px',
+                  color: '#FFD700',
+                }}
+              >
+                A je to doma
+              </h1>
+              <p
+                style={{
+                  fontSize: '24px',
+                  marginBottom: '30px',
+                  lineHeight: '1.6',
+                }}
+              >
+                Sečteno a podtrženo jsi borec tati. Doufám, že sis svůj vánoční
+                dárek užil a že to nezpůsobilo žádné nepříjemné situace při
+                hledání - nedošlo mi, že možná budeš muset semtam něco
+                přehrábnout. Tak snad z toho mamce nezešedivěly vlasy 😁
+              </p>
+            </div>
           </>
         ) : countdown !== null ? (
           <>
-            <div style={{ fontSize: '80px', marginBottom: '20px' }}>⏳</div>
             <h1
               style={{
                 fontSize: '48px',
@@ -123,7 +137,7 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
                 color: '#FFD700',
               }}
             >
-              Těch mincí je tolik...
+              Přepočítávám mince
             </h1>
             <div
               style={{
@@ -137,10 +151,18 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
             >
               {formatTime(countdown)}
             </div>
-            <CoinAnimation countdownSeconds={countdown} />
-            <p style={{ fontSize: '20px', opacity: 0.9, marginTop: '20px' }}>
-              Budeš si muset chvíli počkat
-            </p>
+            <div
+              style={{
+                width: '100%',
+                height: '260px',
+                border: '2px solid rgba(255,215,0,0.3)',
+                borderRadius: 10,
+                background: 'rgba(0,0,0,0.2)',
+                overflow: 'hidden',
+              }}
+            >
+              <CoinRain countdownSeconds={COUNTDOWN_SECONDS} />
+            </div>
           </>
         ) : (
           <>

@@ -10,13 +10,16 @@
     "db:migrate": "node scripts/migrate.js"
   },
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "@types/qrcode": "^1.5.6",
     "better-sqlite3": "^9.2.2",
     "next": "^14.0.0",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-confetti": "^6.1.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "three": "^0.182.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.8",

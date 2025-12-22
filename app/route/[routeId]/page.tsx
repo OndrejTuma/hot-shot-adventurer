@@ -7,6 +7,7 @@ import Confetti from 'react-confetti'
 import { GameState } from '@/lib/game'
 import { getRouteById } from '@/lib/routes'
 import IndianaJonesLoader from '@/components/IndianaJonesLoader'
+import { getDocumentHeight } from '@/lib/document'
 
 export default function RoutePage() {
   const params = useParams()
@@ -43,9 +44,9 @@ export default function RoutePage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+      setWindowSize({ width: window.innerWidth, height: getDocumentHeight(document) })
       const handleResize = () => {
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+        setWindowSize({ width: window.innerWidth, height: getDocumentHeight(document) })
       }
       window.addEventListener('resize', handleResize)
       return () => window.removeEventListener('resize', handleResize)
@@ -90,7 +91,7 @@ export default function RoutePage() {
     }
   }, [points, displayedPoints])
 
-  const checkRoute = async (isInitialLoad) => {
+  const checkRoute = async (isInitialLoad: boolean) => {
     // Prevent double execution in React StrictMode
     if (isProcessingRef.current) {
       return

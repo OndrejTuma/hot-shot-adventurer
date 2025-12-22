@@ -8,6 +8,7 @@ import ProgressTracker from '@/components/ProgressTracker'
 import CompletionScreen from '@/components/CompletionScreen'
 import IndianaJonesLoader from '@/components/IndianaJonesLoader'
 import { GameState } from '@/lib/game'
+import { getDocumentHeight } from '@/lib/document'
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState | null>(null)
@@ -40,9 +41,9 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+      setWindowSize({ width: window.innerWidth, height: getDocumentHeight(document) })
       const handleResize = () => {
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+        setWindowSize({ width: window.innerWidth, height: getDocumentHeight(document) })
       }
       window.addEventListener('resize', handleResize)
       return () => window.removeEventListener('resize', handleResize)
