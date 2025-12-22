@@ -13,6 +13,7 @@ export default function RoutePage() {
   const routeId = params?.routeId as string
   const [visited, setVisited] = useState(false)
   const [points, setPoints] = useState(0)
+  const [displayedPoints, setDisplayedPoints] = useState(0)
   const [showConfetti, setShowConfetti] = useState(false)
   const [showFireworks, setShowFireworks] = useState(false)
   const [isFirstVisit, setIsFirstVisit] = useState(false)
@@ -21,6 +22,7 @@ export default function RoutePage() {
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
   const [routeConfig, setRouteConfig] = useState(getRouteById(routeId))
   const isProcessingRef = useRef(false)
+  const animationFrameRef = useRef<number>()
 
   useEffect(() => {
     setRouteConfig(getRouteById(routeId))
@@ -37,6 +39,44 @@ export default function RoutePage() {
       return () => window.removeEventListener('resize', handleResize)
     }
   }, [])
+
+  // Counting animation effect
+  useEffect(() => {
+    if (points === 0 || displayedPoints === points) {
+      return
+    }
+
+    const duration = 1500 // 1.5 seconds
+    const startTime = Date.now()
+    const startValue = displayedPoints
+    const endValue = points
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      // Easing function (ease-out cubic)
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+      const easedProgress = easeOutCubic(progress)
+      
+      const currentValue = Math.floor(startValue + (endValue - startValue) * easedProgress)
+      setDisplayedPoints(currentValue)
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate)
+      } else {
+        setDisplayedPoints(endValue)
+      }
+    }
+
+    animationFrameRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [points, displayedPoints])
 
   const checkRoute = async () => {
     // Prevent double execution in React StrictMode
@@ -70,6 +110,7 @@ export default function RoutePage() {
         // Already visited - just show the info
         setVisited(true)
         setPoints(route.points)
+        setDisplayedPoints(route.points)
         setIsFirstVisit(false)
         setLoading(false)
       } else {
@@ -102,6 +143,8 @@ export default function RoutePage() {
         setShowConfetti(true)
         setShowFireworks(true)
         setGameState(result.state)
+        // Start counting animation from 0
+        setDisplayedPoints(0)
 
         // Hide confetti after 5 seconds
         setTimeout(() => {
@@ -120,6 +163,7 @@ export default function RoutePage() {
           const route = gameData.routes.find((r) => r.routeId === routeId)
           if (route) {
             setPoints(route.points)
+            setDisplayedPoints(route.points)
             setVisited(true)
             setIsFirstVisit(false)
             setGameState(gameData)
@@ -139,6 +183,7 @@ export default function RoutePage() {
         const route = gameData.routes.find((r) => r.routeId === routeId)
         if (route && route.visited) {
           setPoints(route.points)
+          setDisplayedPoints(route.points)
           setVisited(true)
           setIsFirstVisit(false)
           setGameState(gameData)
@@ -239,18 +284,7 @@ export default function RoutePage() {
             >
               {routeConfig?.name || 'Location Discovered!'}
             </h1>
-            <p
-              style={{
-                fontSize: '20px',
-                marginBottom: '30px',
-                lineHeight: '1.6',
-                opacity: 0.9,
-              }}
-            >
-              {routeConfig?.description ||
-                "You've made an incredible discovery!"}
-            </p>
-
+            
             <div
               style={{
                 background: 'rgba(255, 215, 0, 0.2)',
@@ -267,11 +301,24 @@ export default function RoutePage() {
                   fontSize: '48px',
                   fontWeight: 'bold',
                   color: '#FFD700',
+                  transition: 'transform 0.1s ease-out',
                 }}
               >
-                🪙 {points.toLocaleString('cs-CZ')}
+                🪙 <span style={{ width: '130px', display: 'inline-block', textAlign: 'left' }}>{displayedPoints.toLocaleString('cs-CZ')}</span>
               </div>
             </div>
+
+            <p
+              style={{
+                fontSize: '20px',
+                marginBottom: '30px',
+                lineHeight: '1.6',
+                opacity: 0.9,
+              }}
+            >
+              {routeConfig?.description ||
+                "You've made an incredible discovery!"}
+            </p>
 
             <button
               onClick={() => router.push('/')}
