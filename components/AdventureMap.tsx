@@ -9,6 +9,38 @@ interface AdventureMapProps {
   onRouteClick?: (routeId: string) => void;
 }
 
+// Helper function to get color scheme based on points
+function getPointColorScheme(points: number) {
+  if (points <= 400) {
+    // Yellow tier: 0-400
+    return {
+      gradient: 'radial-gradient(circle, #FFD700 0%, #FFA500 100%)',
+      border: '#FFD700',
+      shadow: 'rgba(255, 215, 0, 0.8)',
+      pulseBg: 'rgba(255, 215, 0, 0.3)',
+      textColor: '#FFD700',
+    };
+  } else if (points <= 800) {
+    // Blue tier: 401-800
+    return {
+      gradient: 'radial-gradient(circle, #7DB3F5 0%, #5A9FE5 100%)',
+      border: '#7DB3F5',
+      shadow: 'rgba(125, 179, 245, 0.8)',
+      pulseBg: 'rgba(125, 179, 245, 0.3)',
+      textColor: '#7DB3F5',
+    };
+  } else {
+    // Red tier: >800
+    return {
+      gradient: 'radial-gradient(circle, #FF7F7F 0%, #FF5555 100%)',
+      border: '#FF7F7F',
+      shadow: 'rgba(255, 127, 127, 0.8)',
+      pulseBg: 'rgba(255, 127, 127, 0.3)',
+      textColor: '#FF7F7F',
+    };
+  }
+}
+
 export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps) {
   const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
   const [showDialog, setShowDialog] = useState<{ routeId: string; help: string; help2?: string } | null>(null);
@@ -149,6 +181,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
           
           const position = routeConfig.position;
           const isVisited = route.visited;
+          const colorScheme = getPointColorScheme(routeConfig.points);
           
           return (
             <div
@@ -180,7 +213,7 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
-                    background: 'rgba(255, 215, 0, 0.3)',
+                    background: colorScheme.pulseBg,
                     animation: 'pulse 2s infinite',
                   }}
                 />
@@ -194,11 +227,11 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
                   borderRadius: '50%',
                   background: isVisited 
                     ? 'radial-gradient(circle, #4CAF50 0%, #2E7D32 100%)' 
-                    : 'radial-gradient(circle, #FFD700 0%, #FFA500 100%)',
-                  border: `3px solid ${isVisited ? '#2E7D32' : '#FFD700'}`,
+                    : colorScheme.gradient,
+                  border: `3px solid ${isVisited ? '#2E7D32' : colorScheme.border}`,
                   boxShadow: isVisited 
                     ? '0 0 15px rgba(76, 175, 80, 0.6)'
-                    : '0 0 20px rgba(255, 215, 0, 0.8)',
+                    : `0 0 20px ${colorScheme.shadow}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -207,27 +240,8 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
                   animation: isVisited ? 'celebrate 0.6s ease' : 'none',
                 }}
               >
-                {isVisited ? '✓' : '📍'}
+                {isVisited ? '✓' : ''}
               </div>
-              
-              {!isVisited && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    marginTop: '5px',
-                    fontSize: '10px',
-                    color: '#FFD700',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {routeConfig.points}
-                </div>
-              )}
             </div>
           );
         })}

@@ -160,6 +160,7 @@ The game can send Telegram notifications when a treasure route is visited. To en
 - [x] Logo
 - [x] Remove clickable handlers on unvisited routes
 - [x] Add helper dialogs after double clicks
+- [x] Add color tiers for points on the map
 - [ ] Confetti animation through the whole page height (scrollable)
 
 ## License

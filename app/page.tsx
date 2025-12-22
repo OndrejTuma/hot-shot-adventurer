@@ -280,6 +280,11 @@ export default function Home() {
                   Čím těžší lokace, tím větší odměna
                 </li>
                 <li style={{ marginBottom: '8px' }}>
+                  Žlutá - nejsnazší<br />
+                  Modrá - střední<br />
+                  Červená - nejtěžší
+                </li>
+                <li style={{ marginBottom: '8px' }}>
                   V každé lokaci je ukrytý QR kód, ten musíš najít
                 </li>
               </ul>
