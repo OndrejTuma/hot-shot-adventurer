@@ -73,10 +73,11 @@ export default function Home() {
       style={{
         minHeight: '100vh',
         padding: '20px',
-        backgroundImage: 'url(/page-background.svg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
+        backgroundImage: 'url(/drsnak2.webp), url(/banner.webp), url(/page-background.svg)',
+        backgroundPosition: 'right top,left top, center center',
+        backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
+        backgroundAttachment: 'scroll, scroll, fixed',
+        backgroundSize: '50%, 50%, cover',
         position: 'relative',
       }}
     >
@@ -92,22 +93,6 @@ export default function Home() {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <header style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1
-            style={{
-              fontSize: '48px',
-              fontWeight: 'bold',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              marginBottom: '10px',
-              fontFamily: 'serif',
-            }}
-          >
-            Drsňák dobyvatel
-            <br />
-            🏺🏺🏺
-          </h1>
-          <p style={{ fontSize: '20px', opacity: 0.9 }}>
-            Poslední hon za zlatem v Libni
-          </p>
           <button
             onClick={() => {
               setShowInstructions(true)
@@ -118,7 +103,7 @@ export default function Home() {
             }}
             className={hasSeenInstructions ? '' : 'basketball-bounce'}
             style={{
-              marginTop: '15px',
+              marginTop: '30%',
               background: 'none',
               border: 'none',
               width: '40px',
@@ -292,16 +277,16 @@ export default function Home() {
                   V každé lokaci je ukrytý jiný počet mincí
                 </li>
                 <li style={{ marginBottom: '8px' }}>
-                  Čím těžší lokace, tím lepší odměna
+                  Čím těžší lokace, tím větší odměna
                 </li>
                 <li style={{ marginBottom: '8px' }}>
                   V každé lokaci je ukrytý QR kód, ten musíš najít
                 </li>
               </ul>
               <p
-                style={{ marginTop: '20px', fontWeight: 'bold', textAlign: 'center' }}
+                style={{ marginTop: '20px', fontWeight: 'bold', textAlign: 'center', fontSize: '20px' }}
               >
-                Hodně štěstí! 🏺
+                🏺 Hodně štěstí! 🏺
               </p>
             </div>
           </div>
