@@ -3,6 +3,8 @@
 import { ROUTES } from '@/lib/routes';
 import { useRouter } from 'next/navigation';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
 export default function QRCodesPage() {
   const router = useRouter();
 
@@ -106,7 +108,7 @@ export default function QRCodesPage() {
               marginBottom: '10px',
               wordBreak: 'break-all',
             }}>
-              http://46.101.197.134:99
+              {BASE_URL}
             </div>
             
             <a
@@ -129,7 +131,7 @@ export default function QRCodesPage() {
           </div>
 
           {ROUTES.map((route) => {
-            const url = `http://46.101.197.134:99/route/${route.routeId}`;
+            const url = `${BASE_URL}/route/${route.routeId}`;
             return (
               <div
                 key={route.routeId}
@@ -178,7 +180,7 @@ export default function QRCodesPage() {
                   marginBottom: '10px',
                   wordBreak: 'break-all',
                 }}>
-                  {url}
+                  <a href={url}>{url}</a>
                 </div>
                 
                 <div style={{
