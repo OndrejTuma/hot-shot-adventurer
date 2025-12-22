@@ -81,9 +81,7 @@ export default function ProgressTracker({ totalPoints, visitedRoutes, totalRoute
             fontSize: '12px',
             fontWeight: 'bold',
             color: '#000',
-          }}>
-            {totalPoints > 0 && `${Math.round((totalPoints / getTotalPoints()) * 100)}%`}
-          </div>
+          }}/>
         </div>
       </div>
     </div>
