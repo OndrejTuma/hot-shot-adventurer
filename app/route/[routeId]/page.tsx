@@ -362,7 +362,7 @@ export default function RoutePage() {
                   '0 5px 20px rgba(255, 215, 0, 0.4)'
               }}
             >
-              Hledat dál 🗺️
+              {gameState?.completed ? 'Dokončit hru' : 'Hledat dál 🗺️'}
             </button>
           </>
         )}
