@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import QRCode from 'qrcode';
 import { getRouteById } from '@/lib/routes';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://46.101.197.134:99';
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { routeId: string } }
@@ -11,11 +9,14 @@ export async function GET(
   try {
     const { routeId } = params;
     
+    // Get the current origin from the request
+    const baseUrl = request.nextUrl.origin;
+    
     let url: string;
     
     // Handle homepage QR code
     if (routeId === 'home') {
-      url = BASE_URL;
+      url = baseUrl;
     } else {
       // Verify route exists
       const route = getRouteById(routeId);
@@ -24,7 +25,7 @@ export async function GET(
       }
       
       // Generate QR code URL
-      url = `${BASE_URL}/route/${routeId}`;
+      url = `${baseUrl}/route/${routeId}`;
     }
     
     // Generate QR code as buffer

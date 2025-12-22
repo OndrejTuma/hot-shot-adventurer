@@ -23,7 +23,7 @@ export const ROUTES: RouteConfig[] = [
     routeId: 'forbidden-crystal-cave',
     name: 'Kamenná jeskyně',
     description: 'Legenda praví, že tento kámen pochází ze staré čínské zdi. Snad jim tam nebude chybět. Tobě posloužil k získání pokladu Kamenné jeskyně a potvrzení starého českého přísloví: Není kámen, který leží nadarmo.',
-    help: 'Je to níž než se zdá',
+    help: 'Jsem níž než se zdá',
     image: '/kamenna-jeskyne.webp',
     points: 200,
     position: { x: 62, y: 54 },
