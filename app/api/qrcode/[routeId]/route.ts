@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import QRCode from 'qrcode';
 import { getRouteById } from '@/lib/routes';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://46.101.197.134:99';
 
 export async function GET(
   request: NextRequest,
