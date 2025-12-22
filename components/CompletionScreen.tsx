@@ -162,8 +162,8 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
               }}
             >
               Překonal jsi nástrahy výšek, hloubek, šířek i úžek a našel jsi
-              všech {gameState.totalRoutes} pokladů a našel neuvěřitelných{' '}
-              {gameState.totalPoints.toLocaleString('cs-CZ')} mincí!
+              všech {gameState.totalRoutes}&nbsp;pokladů a neuvěřitelných{' '}
+              {gameState.totalPoints.toLocaleString('cs-CZ')}&nbsp;mincí!
               <br /> Indiana Jones bledne závistí a prosí o konzultace.
             </p>
             <div

@@ -154,7 +154,7 @@ The game can send Telegram notifications when a treasure route is visited. To en
 
 ## TODO
 
-- [ ] Initial loader
+- [x] Initial loader
 - [x] Translations
 - [x] Notification system
 - [x] Logo

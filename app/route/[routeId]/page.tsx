@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Confetti from 'react-confetti'
 import { GameState } from '@/lib/game'
 import { getRouteById } from '@/lib/routes'
+import IndianaJonesLoader from '@/components/IndianaJonesLoader'
 
 export default function RoutePage() {
   const params = useParams()
@@ -25,8 +26,19 @@ export default function RoutePage() {
   const animationFrameRef = useRef<number>()
 
   useEffect(() => {
+    // Only show loader on initial page load, not when navigating between routes
+    const isInitialLoad = sessionStorage.getItem('appInitialized') !== 'true'
+    
+    if (!isInitialLoad) {
+      // If app already initialized, skip the loader
+      setLoading(false)
+    } else {
+      // Mark app as initialized
+      sessionStorage.setItem('appInitialized', 'true')
+    }
+
     setRouteConfig(getRouteById(routeId))
-    checkRoute()
+    checkRoute(isInitialLoad)
   }, [routeId])
 
   useEffect(() => {
@@ -78,12 +90,27 @@ export default function RoutePage() {
     }
   }, [points, displayedPoints])
 
-  const checkRoute = async () => {
+  const checkRoute = async (isInitialLoad) => {
     // Prevent double execution in React StrictMode
     if (isProcessingRef.current) {
       return
     }
     isProcessingRef.current = true
+    
+    const minDisplayTime = isInitialLoad ? 2000 : 0 // Minimum 2 seconds only on initial load
+    const fetchStartTime = Date.now()
+
+    const setLoadingWithDelay = () => {
+      if (isInitialLoad) {
+        const elapsed = Date.now() - fetchStartTime
+        const remainingTime = Math.max(0, minDisplayTime - elapsed)
+        setTimeout(() => {
+          setLoading(false)
+        }, remainingTime)
+      } else {
+        setLoading(false)
+      }
+    }
 
     try {
       const currentRouteConfig = getRouteById(routeId)
@@ -112,16 +139,16 @@ export default function RoutePage() {
         setPoints(route.points)
         setDisplayedPoints(route.points)
         setIsFirstVisit(false)
-        setLoading(false)
+        setLoadingWithDelay()
       } else {
         // First visit - visit the route and show celebration
         setIsFirstVisit(true)
         await visitRoute()
-        setLoading(false)
+        setLoadingWithDelay()
       }
     } catch (error) {
       console.error('Error checking route:', error)
-      setLoading(false)
+      setLoadingWithDelay()
     } finally {
       isProcessingRef.current = false
     }
@@ -197,18 +224,7 @@ export default function RoutePage() {
   }
 
   if (loading) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-        }}
-      >
-        <div style={{ fontSize: '24px' }}>Hledání pokladu...</div>
-      </div>
-    )
+    return <IndianaJonesLoader />
   }
 
   return (

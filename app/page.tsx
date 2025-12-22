@@ -6,6 +6,7 @@ import Confetti from 'react-confetti'
 import AdventureMap from '@/components/AdventureMap'
 import ProgressTracker from '@/components/ProgressTracker'
 import CompletionScreen from '@/components/CompletionScreen'
+import IndianaJonesLoader from '@/components/IndianaJonesLoader'
 import { GameState } from '@/lib/game'
 
 export default function Home() {
@@ -18,12 +19,23 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    fetchGameState()
-    // Check if user has seen instructions before
-    if (typeof window !== 'undefined') {
-      const seen = localStorage.getItem('hasSeenInstructions') === 'true'
-      setHasSeenInstructions(seen)
+    // Only show loader on initial page load, not on navigation
+    const isInitialLoad = sessionStorage.getItem('appInitialized') !== 'true'
+    
+    if (!isInitialLoad) {
+      // If app already initialized, skip the loader
+      setLoading(false)
+    } else {
+      // Mark app as initialized
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('appInitialized', 'true')
+      }
     }
+
+    fetchGameState(isInitialLoad)
+    // Check if user has seen instructions before
+    const seen = localStorage.getItem('hasSeenInstructions') === 'true'
+    setHasSeenInstructions(seen)
   }, [])
 
   useEffect(() => {
@@ -37,31 +49,46 @@ export default function Home() {
     }
   }, [])
 
-  const fetchGameState = async () => {
+  const fetchGameState = async (isInitialLoad: boolean) => {    
+    // Only apply minimum display time on initial load
+    const minDisplayTime = isInitialLoad ? 2000 : 0
+    const fetchStartTime = Date.now()
+    
     try {
       const response = await fetch('/api/game')
       const data = await response.json()
       setGameState(data)
-      setLoading(false)
+      
+      // Ensure minimum display time only on initial load
+      if (isInitialLoad) {
+        const elapsed = Date.now() - fetchStartTime
+        const remainingTime = Math.max(0, minDisplayTime - elapsed)
+        
+        setTimeout(() => {
+          setLoading(false)
+        }, remainingTime)
+      } else {
+        setLoading(false)
+      }
     } catch (error) {
       console.error('Error fetching game state:', error)
-      setLoading(false)
+      
+      // Ensure minimum display time even on error, but only on initial load
+      if (isInitialLoad) {
+        const elapsed = Date.now() - fetchStartTime
+        const remainingTime = Math.max(0, minDisplayTime - elapsed)
+        
+        setTimeout(() => {
+          setLoading(false)
+        }, remainingTime)
+      } else {
+        setLoading(false)
+      }
     }
   }
 
   if (loading || !gameState) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-        }}
-      >
-        <div style={{ fontSize: '24px' }}>Načítám dobyvatele...</div>
-      </div>
-    )
+    return <IndianaJonesLoader />
   }
 
   if (gameState.completed) {
