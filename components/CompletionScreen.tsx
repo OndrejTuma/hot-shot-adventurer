@@ -89,7 +89,7 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
           textAlign: 'center',
           background: 'rgba(0, 0, 0, 0.5)',
           borderRadius: '20px',
-          padding: '60px 40px 60px',
+          padding: '60px 40px',
           backdropFilter: 'blur(10px)',
           border: '3px solid rgba(255, 215, 0, 0.5)',
           boxShadow: '0 0 50px rgba(255, 215, 0, 0.3)',
@@ -97,36 +97,38 @@ export default function CompletionScreen({ gameState }: CompletionScreenProps) {
       >
         {showPrizeMessage ? (
           <>
+            <h1
+              style={{
+                fontSize: '48px',
+                marginBottom: '20px',
+                color: '#FFD700',
+              }}
+            >
+              A je to doma
+            </h1>
+            <p
+              style={{
+                fontSize: '24px',
+                marginBottom: '30px',
+                lineHeight: '1.6',
+              }}
+            >
+              Sečteno a podtrženo jsi borec tati. Doufám, že sis svůj vánoční
+              dárek užil a že to nezpůsobilo žádné nepříjemné situace při
+              hledání - nedošlo mi, že možná budeš muset semtam něco
+              přehrábnout. Tak snad z toho mamce nezešedivěly vlasy 😁
+            </p>
             <Image
               src='/dobyvatel.webp'
               alt='Dobyvatel'
               width={300}
               height={300}
-              style={{ float: 'left', marginBottom: '20px' }}
+              style={{
+                marginBottom: '-60px',
+                marginLeft: '-40px',
+                float: 'left',
+              }}
             />
-            <div >
-              <h1
-                style={{
-                  fontSize: '48px',
-                  marginBottom: '20px',
-                  color: '#FFD700',
-                }}
-              >
-                A je to doma
-              </h1>
-              <p
-                style={{
-                  fontSize: '24px',
-                  marginBottom: '30px',
-                  lineHeight: '1.6',
-                }}
-              >
-                Sečteno a podtrženo jsi borec tati. Doufám, že sis svůj vánoční
-                dárek užil a že to nezpůsobilo žádné nepříjemné situace při
-                hledání - nedošlo mi, že možná budeš muset semtam něco
-                přehrábnout. Tak snad z toho mamce nezešedivěly vlasy 😁
-              </p>
-            </div>
           </>
         ) : countdown !== null ? (
           <>
