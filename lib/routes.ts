@@ -70,7 +70,7 @@ export const ROUTES: RouteConfig[] = [
     routeId: 'desert-oasis-secret',
     name: 'Posvátné vodopády',
     description: 'Dobrá práce! Našel jsi poklad ukrytý pod zurčícími vodopády a keramickou bání. Tenhle poklad ukryli bájni Odpadníci pověstní svou důmyslností. Najít ho určitě nebylo snadné. Snad kolena pořád slouží!',
-    help: 'Kde voda klokotá',
+    help: 'Vzhůru nohama',
     image: '/posvatne-vodopady.webp',
     points: 1000,
     position: { x: 62.5, y: 9 },
