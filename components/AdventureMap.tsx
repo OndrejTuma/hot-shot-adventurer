@@ -44,8 +44,11 @@ function getPointColorScheme(points: number) {
 export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps) {
   const [clickCounts, setClickCounts] = useState<Record<string, number>>({});
   const [showDialog, setShowDialog] = useState<{ routeId: string; help: string; help2?: string } | null>(null);
+  const [showLocationName, setShowLocationName] = useState<string | null>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastClickedRouteRef = useRef<string | null>(null);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressCompletedRef = useRef<boolean>(false);
 
   // Reset click count if user clicks a different route or waits too long
   const resetClickCount = (routeId: string) => {
@@ -117,10 +120,52 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
     });
   };
 
+  const handleLongPressStart = (routeId: string) => {
+    // Clear any existing timeout
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+    }
+    
+    // Reset the flag and hide any previously shown location name
+    longPressCompletedRef.current = false;
+    setShowLocationName(null);
+    
+    // Set timeout for long press (500ms)
+    longPressTimeoutRef.current = setTimeout(() => {
+      const routeConfig = getRouteById(routeId);
+      if (routeConfig) {
+        setShowLocationName(routeConfig.name);
+        longPressCompletedRef.current = true;
+        // Clear the flag after a short delay to allow click handling
+        setTimeout(() => {
+          longPressCompletedRef.current = false;
+        }, 100);
+      }
+    }, 500);
+  };
+
+  const handleLongPressEnd = () => {
+    // Clear the timeout if user releases before long press completes
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  };
+
+  const handleLongPressCancel = () => {
+    // Hide location name and clear timeout
+    setShowLocationName(null);
+    longPressCompletedRef.current = false;
+    handleLongPressEnd();
+  };
+
   useEffect(() => {
     return () => {
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
+      }
+      if (longPressTimeoutRef.current) {
+        clearTimeout(longPressTimeoutRef.current);
       }
     };
   }, []);
@@ -187,12 +232,29 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
             <div
               key={route.routeId}
               onClick={() => {
-                if (isVisited && onRouteClick) {
-                  onRouteClick(route.routeId);
-                } else if (!isVisited) {
-                  handleUnvisitedRouteClick(route.routeId);
+                // Don't handle click if we just completed a long press
+                if (longPressCompletedRef.current) {
+                  return;
+                }
+                
+                // Only handle click if location name is not showing (to avoid conflicts)
+                if (!showLocationName) {
+                  if (isVisited && onRouteClick) {
+                    onRouteClick(route.routeId);
+                  } else if (!isVisited) {
+                    handleUnvisitedRouteClick(route.routeId);
+                  }
+                } else {
+                  // If location name is showing, clicking hides it
+                  setShowLocationName(null);
                 }
               }}
+              onMouseDown={() => handleLongPressStart(route.routeId)}
+              onMouseUp={handleLongPressEnd}
+              onMouseLeave={handleLongPressCancel}
+              onTouchStart={() => handleLongPressStart(route.routeId)}
+              onTouchEnd={handleLongPressEnd}
+              onTouchCancel={handleLongPressCancel}
               style={{
                 position: 'absolute',
                 left: `${position.x}%`,
@@ -242,6 +304,47 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
               >
                 {isVisited ? '✓' : ''}
               </div>
+              
+              {/* Location name tooltip */}
+              {showLocationName === routeConfig.name && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    marginBottom: '10px',
+                    padding: '8px 12px',
+                    background: 'rgba(0, 0, 0, 0.85)',
+                    color: '#FFD700',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                    zIndex: 20,
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                    border: '2px solid #FFD700',
+                    pointerEvents: 'none',
+                    animation: 'fadeIn 0.2s ease',
+                  }}
+                >
+                  {routeConfig.name}
+                  {/* Arrow pointing down */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: 0,
+                      height: 0,
+                      borderLeft: '6px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderTop: '6px solid rgba(0, 0, 0, 0.85)',
+                    }}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
@@ -363,6 +466,16 @@ export default function AdventureMap({ routes, onRouteClick }: AdventureMapProps
           }
           100% {
             transform: scale(1);
+          }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0px);
           }
         }
       `}</style>
